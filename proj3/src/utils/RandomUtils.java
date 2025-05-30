@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.Random;
+import java.util.List;
 
 /**
  * A library of static methods to generate pseudo-random numbers from
@@ -342,6 +343,23 @@ public class RandomUtils {
             throw new IllegalArgumentException("lambda must be positive: " + lambda);
         }
         return -Math.log(1 - uniform(random)) / lambda;
+    }
+
+    /**
+     * Returns a uniformly‑random element from the supplied list.
+     *
+     * @param list the list to sample from (must be non‑null and non‑empty)
+     * @return a random element of {@code list}, each with equal probability
+     * @throws IllegalArgumentException if {@code list} is {@code null} or empty
+     */
+    public static <T> T randomChoice(Random random, List<T> list) {
+        if (list == null) {
+            throw new IllegalArgumentException("list is null");
+        }
+        if (list.isEmpty()) {
+            throw new IllegalArgumentException("list must contain at least one element");
+        }
+        return list.get(uniform(random, list.size()));
     }
 
     /**
