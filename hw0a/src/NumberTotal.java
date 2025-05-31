@@ -20,4 +20,10 @@ public class NumberTotal {
 
 TODO: Write output here
 
+24 1
+22 2
+19 3
+15 4
+10 5
+
 Then, click the green play button to check your work. */
