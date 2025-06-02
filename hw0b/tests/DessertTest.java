@@ -17,11 +17,8 @@ public class DessertTest {
     @Order(0)
     @DisplayName("Test Dessert class")
     public void testDessert() {
-        // TODO: Uncomment this test when you've created and completed Dessert.java!
-        // TODO: Delete lines 24 and 60 of this file to uncomment.
         boolean completed = false;
 
-        /*
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
@@ -57,7 +54,6 @@ public class DessertTest {
                 .isEqualTo("I love dessert!");
 
         completed = true;
-        */
 
         // Check that assertions were run
         if (!completed) {

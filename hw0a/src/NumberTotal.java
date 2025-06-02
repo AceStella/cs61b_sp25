@@ -5,7 +5,6 @@
  * @author Erik Kizior
  */
 
-// TODO: What is the output of the following program?
 public class NumberTotal {
     public static void main(String[] args) {
         int total = 25;
@@ -17,8 +16,6 @@ public class NumberTotal {
 }
 
 /* Before running the code, type your answer below.
-
-TODO: Write output here
 
 24 1
 22 2

@@ -12,7 +12,6 @@ public class JavaExercises {
      * The first row contains 1 star, the second 2 stars, and so on.
      */
     public static void starTriangle() {
-        // TODO: Fill in this function
         String stars = "";
         for (int i = 1; i <= 5; i++) {
             stars += "*";
@@ -25,7 +24,6 @@ public class JavaExercises {
      * Example: printIndexed("hello") -> h4e3l2l1o0
      */
     public static void printIndexed(String s) {
-        // TODO: Fill in this function
         for (int i = 0; i < s.length(); i++) {
             System.out.print(s.charAt(i));
             System.out.print(s.length() - 1 - i);
@@ -38,9 +36,8 @@ public class JavaExercises {
      * Example: stutter("hello") -> "hheelllloo"
      */
     public static String stutter(String s) {
-        // TODO: Fill in this function
         String output = "";
-        for (int i = 0; i < s.length(); i++){
+        for (int i = 0; i < s.length(); i++) {
             output += s.charAt(i);
             output += s.charAt(i);
         }
@@ -57,7 +54,6 @@ public class JavaExercises {
      *   0 if the point lies on an axis.
      */
     public static int quadrant(int x, int y) {
-        // TODO: Fill in this function
         if (x == 0 || y == 0) {
             return 0;
         } else if (x > 0) {
@@ -71,10 +67,10 @@ public class JavaExercises {
         starTriangle();
         printIndexed("hello");
         System.out.println(stutter("hello"));
-        System.out.println(quadrant(3, 4));  // Output: 1
-        System.out.println(quadrant(-3, 4)); // Output: 2
-        System.out.println(quadrant(-3, -4));// Output: 3
-        System.out.println(quadrant(3, -4)); // Output: 4
-        System.out.println(quadrant(0, 5));  // Output: 0
+        System.out.println(quadrant(3, 4));   // Output: 1
+        System.out.println(quadrant(-3, 4));  // Output: 2
+        System.out.println(quadrant(-3, -4)); // Output: 3
+        System.out.println(quadrant(3, -4));  // Output: 4
+        System.out.println(quadrant(0, 5));   // Output: 0
     }
 }
