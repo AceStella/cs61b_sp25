@@ -28,8 +28,8 @@ public class GameLogic {
                 board[r][c] = 0;
                 return 1 + i;
             } else {
-                if (i != r - 1){
-                    board[i+1][c] = board[r][c];
+                if (i != r - 1) {
+                    board[i + 1][c] = board[r][c];
                     board[r][c] = 0;
                 }
                 return 0;
@@ -51,12 +51,11 @@ public class GameLogic {
      */
     public static void tiltColumn(int[][] board, int c) {
         int minR = 0;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < board.length; i++) {
             if (board[i][c] != 0) {
                 minR = moveTileUpAsFarAsPossible(board, i, c, minR);
             }
         }
-        return;
     }
 
     /**
@@ -65,10 +64,9 @@ public class GameLogic {
      * @param board     the current state of the board.
      */
     public static void tiltUp(int[][] board) {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < board.length; i++) {
             tiltColumn(board, i);
         }
-        return;
     }
 
     /**
@@ -79,15 +77,22 @@ public class GameLogic {
      * @param side  the direction to tilt
      */
     public static void tilt(int[][] board, Side side) {
-        // TODO: fill this in in task 7
         if (side == Side.EAST) {
-            return;
+            rotateLeft(board);
+            tiltUp(board);
+            rotateRight(board);
         } else if (side == Side.WEST) {
-            return;
+            rotateRight(board);
+            tiltUp(board);
+            rotateLeft(board);
         } else if (side == Side.SOUTH) {
-            return;
+            rotateRight(board);
+            rotateRight(board);
+            tiltUp(board);
+            rotateRight(board);
+            rotateRight(board);
         } else {
-            return;
+            tiltUp(board);
         }
     }
 }
