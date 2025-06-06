@@ -19,12 +19,25 @@ public class GameLogic {
      *              if no merge occurs, then return 0.
      */
     public static int moveTileUpAsFarAsPossible(int[][] board, int r, int c, int minR) {
-        for (int i = 0; i < r; i++) {
+        int zeroPosi = r + 1;
+        for (int i = r - 1; i >= minR; i--) {
             if (board[i][c] == 0) {
-                board[i][c] = board[r][c];
+                zeroPosi = i;
+            } else if (board[i][c] == board[r][c]) {
+                board[i][c] *= 2;
                 board[r][c] = 0;
+                return 1 + i;
+            } else {
+                if (i != r - 1){
+                    board[i+1][c] = board[r][c];
+                    board[r][c] = 0;
+                }
                 return 0;
             }
+        }
+        if (zeroPosi == minR) {
+            board[minR][c] = board[r][c];
+            board[r][c] = 0;
         }
         return 0;
     }
@@ -37,7 +50,12 @@ public class GameLogic {
      * @param c         the column to tilt up.
      */
     public static void tiltColumn(int[][] board, int c) {
-        // TODO: fill this in in task 5
+        int minR = 0;
+        for (int i = 0; i < 4; i++) {
+            if (board[i][c] != 0) {
+                minR = moveTileUpAsFarAsPossible(board, i, c, minR);
+            }
+        }
         return;
     }
 
@@ -47,7 +65,9 @@ public class GameLogic {
      * @param board     the current state of the board.
      */
     public static void tiltUp(int[][] board) {
-        // TODO: fill this in in task 6
+        for (int i = 0; i < 4; i++) {
+            tiltColumn(board, i);
+        }
         return;
     }
 
