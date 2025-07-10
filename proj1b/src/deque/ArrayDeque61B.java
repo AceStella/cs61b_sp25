@@ -1,229 +1,201 @@
 package deque;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 public class ArrayDeque61B<T> implements Deque61B<T> {
     private T[] items;
     private int size;
+    // INVARIANTS:
+    // 1. The 'size' of the deque is the number of items it contains.
+    // 2. The 'capacity' is the length of the 'items' array.
+    // 3. 'nextFirst' is the index where the next item to be added at the front will go.
+    // 4. 'nextLast' is the index where the next item to be added at the back will go.
+    // 5. The pointers 'nextFirst' and 'nextLast' always stay within the range [0, capacity - 1].
+    // 6. The first logical element of the deque is at index (nextFirst + 1) % capacity.
     private int nextFirst;
     private int nextLast;
     private int capacity;
 
     private static final int INITIAL_CAPACITY = 8;
+    private static final double RESIZE_FACTOR = 2.0;
+    private static final double USAGE_RATIO_THRESHOLD = 0.25;
 
     public ArrayDeque61B() {
         capacity = INITIAL_CAPACITY;
         items = (T[]) new Object[capacity];
         size = 0;
-        nextFirst = 0;
-        nextLast = 1;
+        // A common starting state for an empty circular array.
+        // nextFirst points to the "end" and nextLast points to the "start".
+        nextFirst = capacity - 1;
+        nextLast = 0;
     }
 
-    /**
-     * Add {@code x} to the front of the deque. Assumes {@code x} is never null.
-     *
-     * @param x item to add
-     */
+    /** Helper to calculate the new index with wraparound. */
+    private int minusOne(int index) {
+        return Math.floorMod(index - 1, capacity);
+    }
+
+    private int plusOne(int index) {
+        return Math.floorMod(index + 1, capacity);
+    }
+
+    /** Resizes the underlying array to the given new capacity. */
+    private void resize(int newCapacity) {
+        T[] newItems = (T[]) new Object[newCapacity];
+        int current = plusOne(nextFirst); // The physical index of the first logical element
+
+        // Copy elements from the old array to the new array in order.
+        for (int i = 0; i < size; i++) {
+            newItems[i] = items[current];
+            current = plusOne(current);
+        }
+
+        items = newItems;
+        capacity = newCapacity;
+
+        // Reset pointers for the new, non-wrapped array configuration.
+        // Elements are now at [0, 1, ..., size - 1].
+        nextFirst = capacity - 1; // Next addFirst will go at the end of the new array.
+        nextLast = size;          // Next addLast will go right after the last element.
+    }
+
     @Override
     public void addFirst(T x) {
-        addHelper(x, true);
+        // Resize if the array is full.
+        if (size == capacity) {
+            resize((int) (capacity * RESIZE_FACTOR));
+        }
+
+        // The 'nextFirst' pointer is pre-calculated to be the correct empty slot.
+        items[nextFirst] = x;
+        // Move the pointer for the *next* addFirst operation.
+        nextFirst = minusOne(nextFirst);
+        size += 1;
     }
 
-    /**
-     * Add {@code x} to the back of the deque. Assumes {@code x} is never null.
-     *
-     * @param x item to add
-     */
     @Override
     public void addLast(T x) {
-        addHelper(x, false);
-    }
-
-    public void addHelper(T x, boolean isAddFirst) {
+        // Resize if the array is full.
         if (size == capacity) {
-            items = resizingUp();
+            resize((int) (capacity * RESIZE_FACTOR));
         }
+
+        // The 'nextLast' pointer is pre-calculated to be the correct empty slot.
+        items[nextLast] = x;
+        // Move the pointer for the *next* addLast operation.
+        nextLast = plusOne(nextLast);
         size += 1;
-        if (isAddFirst) {
-            items[nextFirst] = x;
-            nextFirst = indexCalculator(-2);
-        } else {
-            items[nextLast] = x;
-            nextLast = indexCalculator(size);
+    }
+
+    @Override
+    public T removeFirst() {
+        if (isEmpty()) {
+            return null;
         }
+
+        // Check for downsizing *before* removal.
+        if (capacity >= INITIAL_CAPACITY * 2 && (double) size / capacity < USAGE_RATIO_THRESHOLD) {
+            resize(capacity / 2);
+        }
+
+        // The first logical item is one position after 'nextFirst'.
+        int firstItemIndex = plusOne(nextFirst);
+        T itemToRemove = items[firstItemIndex];
+        items[firstItemIndex] = null; // Help with garbage collection.
+        // The now-empty slot becomes the new 'nextFirst'.
+        nextFirst = firstItemIndex;
+        size -= 1;
+
+        return itemToRemove;
     }
 
-    public int indexCalculator(int index) {
-        return Math.floorMod(nextFirst + 1 + index, capacity);
+    @Override
+    public T removeLast() {
+        if (isEmpty()) {
+            return null;
+        }
+
+        // Check for downsizing *before* removal.
+        if (capacity >= INITIAL_CAPACITY * 2 && (double) size / capacity < USAGE_RATIO_THRESHOLD) {
+            resize(capacity / 2);
+        }
+
+        // The last logical item is one position before 'nextLast'.
+        int lastItemIndex = minusOne(nextLast);
+        T itemToRemove = items[lastItemIndex];
+        items[lastItemIndex] = null; // Help with garbage collection.
+        // The now-empty slot becomes the new 'nextLast'.
+        nextLast = lastItemIndex;
+        size -= 1;
+
+        return itemToRemove;
     }
 
-    /**
-     * Returns a List copy of the deque. Does not alter the deque.
-     *
-     * @return a new list copy of the deque.
-     */
     @Override
     public List<T> toList() {
         List<T> returnList = new ArrayList<>();
+        int current = plusOne(nextFirst);
         for (int i = 0; i < size; i++) {
-            returnList.addLast(items[indexCalculator(i)]);
+            returnList.add(items[current]);
+            current = plusOne(current);
         }
         return returnList;
     }
 
-    /**
-     * Returns if the deque is empty. Does not alter the deque.
-     *
-     * @return {@code true} if the deque has no elements, {@code false} otherwise.
-     */
     @Override
     public boolean isEmpty() {
         return size == 0;
     }
 
-    /**
-     * Returns the size of the deque. Does not alter the deque.
-     *
-     * @return the number of items in the deque.
-     */
     @Override
     public int size() {
         return size;
     }
 
-    /**
-     * Remove and return the element at the front of the deque, if it exists.
-     *
-     * @return removed element, otherwise {@code null}.
-     */
-    @Override
-    public T removeFirst() {
-        return removeHelper(true);
-    }
-
-    /**
-     * Remove and return the element at the back of the deque, if it exists.
-     *
-     * @return removed element, otherwise {@code null}.
-     */
-    @Override
-    public T removeLast() {
-        return removeHelper(false);
-    }
-
-    public T removeHelper(boolean isRemoveFirst) {
-        if (capacity > 15 && size <= capacity * 0.25) {
-            items = resizingDown();
-        }
-        int index;
-        if (isRemoveFirst) {
-            index = indexCalculator(0);
-            nextFirst += 1;
-        } else {
-            index = indexCalculator(size - 1);
-            nextLast -= 1;
-        }
-        T item = items[index];
-        items[index] = null;
-        size -= 1;
-        return item;
-    }
-
-    /**
-     * The Deque61B abstract data type does not typically have a get method,
-     * but we've included this extra operation to provide you with some
-     * extra programming practice. Gets the element, iteratively. Returns
-     * null if index is out of bounds. Does not alter the deque.
-     *
-     * @param index index to get
-     * @return element at {@code index} in the deque
-     */
     @Override
     public T get(int index) {
         if (index < 0 || index >= size) {
             return null;
         }
-        return items[indexCalculator(index)];
+        // Calculate the physical index: start from the first element and offset by 'index'.
+        int physicalIndex = Math.floorMod(plusOne(nextFirst) + index, capacity);
+        return items[physicalIndex];
     }
 
-    /**
-     * This method technically shouldn't be in the interface, but it's here
-     * to make testing nice. Gets an element, recursively. Returns null if
-     * index is out of bounds. Does not alter the deque.
-     *
-     * @param index index to get
-     * @return element at {@code index} in the deque
-     */
     @Override
     public T getRecursive(int index) {
         throw new UnsupportedOperationException("No need to implement getRecursive for proj 1b");
     }
 
-    public T[] resizingUp() {
-        return resizingHelper(2);
-    }
-
-    public T[] resizingDown() {
-        return resizingHelper(0.5);
-    }
-
-    public T[] resizingHelper(double x) {
-        int newCapacity = (int) (capacity * x);
-        T[] newItems = (T[]) new Object[newCapacity];
-        int index;
-        for (int i = 1; i <= size; i++) {
-            index = indexCalculator(i - 1);
-            newItems[i] = items[index];
-        }
-        nextFirst = 0;
-        nextLast = size + 1;
-        capacity = newCapacity;
-        return newItems;
+    @Override
+    public Iterator<T> iterator() {
+        return new ArrayDequeIterator();
     }
 
     private class ArrayDequeIterator implements Iterator<T> {
-        private int posi;
+        private int logicalIndex;
 
         public ArrayDequeIterator() {
-            posi = 0;
-        }
-        /**
-         * Returns {@code true} if the iteration has more elements.
-         * (In other words, returns {@code true} if {@link #next} would
-         * return an element rather than throwing an exception.)
-         *
-         * @return {@code true} if the iteration has more elements
-         */
-        @Override
-        public boolean hasNext() {
-            return posi < size;
+            logicalIndex = 0;
         }
 
-        /**
-         * Returns the next element in the iteration.
-         *
-         * @return the next element in the iteration
-         * @throws NoSuchElementException if the iteration has no more elements
-         */
+        @Override
+        public boolean hasNext() {
+            return logicalIndex < size;
+        }
+
         @Override
         public T next() {
             if (!hasNext()) {
                 throw new NoSuchElementException("There is no next element.");
             }
-            T returnItem = items[indexCalculator(posi)];
-            posi += 1;
+            T returnItem = get(logicalIndex);
+            logicalIndex += 1;
             return returnItem;
         }
-    }
-
-    /**
-     * Returns an iterator over elements of type {@code T}.
-     *
-     * @return an Iterator.
-     */
-    @Override
-    public Iterator<T> iterator() {
-        return new ArrayDequeIterator();
     }
 
     @Override
@@ -231,13 +203,10 @@ public class ArrayDeque61B<T> implements Deque61B<T> {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
+        // Use instanceof for better type checking, it handles null implicitly.
+        if (!(obj instanceof Deque61B<?> o)) {
             return false;
         }
-        if (obj.getClass() != this.getClass()) {
-            return false;
-        }
-        ArrayDeque61B<T> o = (ArrayDeque61B<T>) obj;
         if (o.size() != this.size()) {
             return false;
         }
@@ -251,16 +220,8 @@ public class ArrayDeque61B<T> implements Deque61B<T> {
 
     @Override
     public String toString() {
-        if (isEmpty()) {
-            return "{}";
-        }
-        StringBuilder returnSB = new StringBuilder("{");
-        for (int i = 0; i < size - 1; i++) {
-            returnSB.append(items[indexCalculator(i)].toString());
-            returnSB.append(", ");
-        }
-        returnSB.append(items[indexCalculator(size - 1)]);
-        returnSB.append("}");
-        return returnSB.toString();
+        // Reusing toList is a clean and simple way to implement toString.
+        // It's less error-prone than manual string building.
+        return toList().toString().replace('[', '{').replace(']', '}');
     }
 }
