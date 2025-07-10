@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -180,5 +181,110 @@ public class ArrayDeque61BTest {
 
         assertThat(ad1.size()).isEqualTo(4);
         assertThat(ad1.toList()).containsExactly(16, 17, 18, 19).inOrder();
+    }
+
+    @Test
+    public void iteratorTest() {
+        Deque61B<String> ad = new ArrayDeque61B<>();
+        ad.addLast("middle");
+        ad.addFirst("front");
+        ad.addLast("back");
+        ad.addFirst("very front");
+        // Expected order: ["very front", "front", "middle", "back"]
+
+        // Test using the enhanced for-loop (which relies on the iterator)
+        List<String> iteratedItems = new ArrayList<>();
+        for (String item : ad) {
+            iteratedItems.add(item);
+        }
+        assertThat(iteratedItems).containsExactly("very front", "front", "middle", "back").inOrder();
+
+        // Test iterator on an empty deque
+        Deque61B<Integer> emptyDeque = new ArrayDeque61B<>();
+        assertThat(emptyDeque.iterator().hasNext()).isFalse();
+        // Also test the enhanced for-loop on an empty deque
+        for (Integer item : emptyDeque) {
+            assertWithMessage("Should not be able to iterate over an empty deque").fail();
+        }
+    }
+
+    @Test
+    public void equalsTest() {
+        Deque61B<Integer> ad1 = new ArrayDeque61B<>();
+        ad1.addLast(10);
+        ad1.addFirst(5);
+        ad1.addLast(20); // Deque is [5, 10, 20]
+
+        Deque61B<Integer> ad2 = new ArrayDeque61B<>();
+        ad2.addLast(10);
+        ad2.addFirst(5);
+        ad2.addLast(20); // Deque is [5, 10, 20]
+
+        // Test for equality with itself and an identical deque
+        assertThat(ad1).isEqualTo(ad1);
+        assertThat(ad1).isEqualTo(ad2);
+
+        // Test for inequality: different size
+        ad2.addLast(30); // ad2 is now [5, 10, 20, 30]
+        assertThat(ad1).isNotEqualTo(ad2);
+
+        // Test for inequality: same size, different elements
+        Deque61B<Integer> ad3 = new ArrayDeque61B<>();
+        ad3.addLast(10);
+        ad3.addFirst(5);
+        ad3.addLast(99); // Deque is [5, 10, 99]
+        assertThat(ad1).isNotEqualTo(ad3);
+
+        // Test for inequality: same elements, different order
+        Deque61B<Integer> ad4 = new ArrayDeque61B<>();
+        ad4.addFirst(10);
+        ad4.addFirst(5);
+        ad4.addLast(20); // Deque is [5, 10, 20] -> Oops, my comment was wrong. Let's fix.
+        // ad4: addFirst(10) -> [10], addFirst(5) -> [5, 10], addLast(20) -> [5, 10, 20]
+        // This is actually equal. Let's create a non-equal one.
+        Deque61B<Integer> ad5 = new ArrayDeque61B<>();
+        ad5.addLast(5);
+        ad5.addLast(20);
+        ad5.addLast(10); // Deque is [5, 20, 10]
+        assertThat(ad1).isNotEqualTo(ad5);
+
+        // Test against null and different object types
+        assertThat(ad1).isNotEqualTo(null);
+        List<Integer> arrayList = List.of(5, 10, 20);
+        assertThat(ad1).isNotEqualTo(arrayList);
+
+        // Test empty deques
+        Deque61B<String> empty1 = new ArrayDeque61B<>();
+        Deque61B<String> empty2 = new ArrayDeque61B<>();
+        assertThat(empty1).isEqualTo(empty2);
+    }
+
+    @Test
+    public void toStringTest() {
+        // NOTE: These tests assume your desired format is "{item1, item2, ...}"
+        // for non-empty deques and "{}" for empty ones. Your implementation
+        // may produce something different, like "[item1, item2, ...]".
+        // Adjust the expected strings if your format is different.
+
+        // Test an empty deque
+        Deque61B<Integer> emptyDeque = new ArrayDeque61B<>();
+        assertThat(emptyDeque.toString()).isEqualTo("{}");
+
+        // Test a deque with one element
+        Deque61B<String> singleItemDeque = new ArrayDeque61B<>();
+        singleItemDeque.addLast("lonely");
+        assertThat(singleItemDeque.toString()).isEqualTo("{lonely}");
+
+        // Test a deque with multiple elements
+        Deque61B<Integer> multiItemDeque = new ArrayDeque61B<>();
+        multiItemDeque.addLast(1);
+        multiItemDeque.addLast(2);
+        multiItemDeque.addLast(3);
+        assertThat(multiItemDeque.toString()).isEqualTo("{1, 2, 3}");
+
+        // Test after adds and removes to ensure correctness
+        multiItemDeque.addFirst(0);
+        multiItemDeque.removeLast(); // Deque is now [0, 1, 2]
+        assertThat(multiItemDeque.toString()).isEqualTo("{0, 1, 2}");
     }
 }

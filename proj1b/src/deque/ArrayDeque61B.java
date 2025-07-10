@@ -1,10 +1,6 @@
 package deque;
 
-import net.sf.saxon.om.Item;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.lang.Math;
+import java.util.*;
 
 public class ArrayDeque61B<T> implements Deque61B<T> {
     private T[] items;
@@ -44,17 +40,21 @@ public class ArrayDeque61B<T> implements Deque61B<T> {
     }
 
     public void addHelper(T x, boolean isAddFirst) {
-        if(size == capacity) {
+        if (size == capacity) {
             items = resizingUp();
         }
         size += 1;
-        if(isAddFirst){
+        if (isAddFirst) {
             items[nextFirst] = x;
-            nextFirst = Math.floorMod(nextFirst - 1, capacity);
+            nextFirst = indexCalculator(-2);
         } else {
             items[nextLast] = x;
-            nextLast = Math.floorMod(nextLast + 1, capacity);
+            nextLast = indexCalculator(size);
         }
+    }
+
+    public int indexCalculator(int index) {
+        return Math.floorMod(nextFirst + 1 + index, capacity);
     }
 
     /**
@@ -65,8 +65,8 @@ public class ArrayDeque61B<T> implements Deque61B<T> {
     @Override
     public List<T> toList() {
         List<T> returnList = new ArrayList<>();
-        for (int i = 1; i <= size; i++) {
-            returnList.addLast(items[Math.floorMod(nextFirst + i, capacity)]);
+        for (int i = 0; i < size; i++) {
+            returnList.addLast(items[indexCalculator(i)]);
         }
         return returnList;
     }
@@ -112,15 +112,15 @@ public class ArrayDeque61B<T> implements Deque61B<T> {
     }
 
     public T removeHelper(boolean isRemoveFirst) {
-        if (capacity > 15 && size <= capacity * 0.25){
+        if (capacity > 15 && size <= capacity * 0.25) {
             items = resizingDown();
         }
         int index;
         if (isRemoveFirst) {
-            index = Math.floorMod(nextFirst + 1, capacity);
+            index = indexCalculator(0);
             nextFirst += 1;
         } else {
-            index = Math.floorMod(nextLast - 1, capacity);
+            index = indexCalculator(size - 1);
             nextLast -= 1;
         }
         T item = items[index];
@@ -143,7 +143,7 @@ public class ArrayDeque61B<T> implements Deque61B<T> {
         if (index < 0 || index >= size) {
             return null;
         }
-        return items[Math.floorMod(nextFirst + index + 1, capacity)];
+        return items[indexCalculator(index)];
     }
 
     /**
@@ -171,13 +171,96 @@ public class ArrayDeque61B<T> implements Deque61B<T> {
         int newCapacity = (int) (capacity * x);
         T[] newItems = (T[]) new Object[newCapacity];
         int index;
-        for(int i = 1; i <= size; i++) {
-            index = Math.floorMod(nextFirst + i, capacity);
+        for (int i = 1; i <= size; i++) {
+            index = indexCalculator(i - 1);
             newItems[i] = items[index];
         }
         nextFirst = 0;
         nextLast = size + 1;
         capacity = newCapacity;
         return newItems;
+    }
+
+    private class ArrayDequeIterator implements Iterator<T> {
+        private int posi;
+
+        public ArrayDequeIterator() {
+            posi = 0;
+        }
+        /**
+         * Returns {@code true} if the iteration has more elements.
+         * (In other words, returns {@code true} if {@link #next} would
+         * return an element rather than throwing an exception.)
+         *
+         * @return {@code true} if the iteration has more elements
+         */
+        @Override
+        public boolean hasNext() {
+            return posi < size;
+        }
+
+        /**
+         * Returns the next element in the iteration.
+         *
+         * @return the next element in the iteration
+         * @throws NoSuchElementException if the iteration has no more elements
+         */
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("There is no next element.");
+            }
+            T returnItem = items[indexCalculator(posi)];
+            posi += 1;
+            return returnItem;
+        }
+    }
+
+    /**
+     * Returns an iterator over elements of type {@code T}.
+     *
+     * @return an Iterator.
+     */
+    @Override
+    public Iterator<T> iterator() {
+        return new ArrayDequeIterator();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (obj.getClass() != this.getClass()) {
+            return false;
+        }
+        ArrayDeque61B<T> o = (ArrayDeque61B<T>) obj;
+        if (o.size() != this.size()) {
+            return false;
+        }
+        for (int i = 0; i < size; i++) {
+            if (!this.get(i).equals(o.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        if (isEmpty()) {
+            return "{}";
+        }
+        StringBuilder returnSB = new StringBuilder("{");
+        for (int i = 0; i < size - 1; i++) {
+            returnSB.append(items[indexCalculator(i)].toString());
+            returnSB.append(", ");
+        }
+        returnSB.append(items[indexCalculator(size - 1)]);
+        returnSB.append("}");
+        return returnSB.toString();
     }
 }
