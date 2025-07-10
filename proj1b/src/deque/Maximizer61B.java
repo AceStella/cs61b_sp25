@@ -1,5 +1,6 @@
 package deque;
 import java.util.Comparator;
+import java.util.Iterator;
 
 public class Maximizer61B {
     /**
@@ -10,7 +11,18 @@ public class Maximizer61B {
      * @return          the maximum element
      */
     public static <T extends Comparable<T>> T max(Iterable<T> iterable) {
-        return null;
+        Iterator<T> iterator = iterable.iterator();
+        if (!iterator.hasNext()) {
+            return null;
+        }
+        T maxItem = iterator.next();
+        while (iterator.hasNext()) {
+            T current = iterator.next();
+            if (current.compareTo(maxItem) > 0) {
+                maxItem = current;
+            }
+        }
+        return maxItem;
     }
 
     /**
@@ -22,17 +34,17 @@ public class Maximizer61B {
      * @return          the maximum element according to the comparator
      */
     public static <T> T max(Iterable<T> iterable, Comparator<T> comp) {
-        return null;
-    }
-
-    public static void main(String[] args) {
-        // The style checker will complain about this main method, feel free to delete.
-
-        // ArrayDeque61B<Integer> ad = new ArrayDeque61B<>();
-        // ad.addLast(5);
-        // ad.addLast(12);
-        // ad.addLast(17);
-        // ad.addLast(23);
-        // System.out.println(max(ad));
+        Iterator<T> iterator = iterable.iterator();
+        if (!iterator.hasNext()) {
+            return null;
+        }
+        T maxItem = iterator.next();
+        while (iterator.hasNext()) {
+            T current = iterator.next();
+            if (comp.compare(current, maxItem) > 0) {
+                maxItem = current;
+            }
+        }
+        return maxItem;
     }
 }
