@@ -1,7 +1,6 @@
 package ngrams;
 
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * An object for mapping a year number (e.g. 1996) to numerical data. Provides
@@ -30,15 +29,20 @@ public class TimeSeries extends TreeMap<Integer, Double> {
      */
     public TimeSeries(TimeSeries ts, int startYear, int endYear) {
         super();
-        // TODO: Fill in this constructor.
+        Set<Integer> years = ts.keySet();
+
+        for (Integer year : years) {
+            if (year >= startYear && year <= endYear) {
+                this.put(year, ts.get(year));
+            }
+        }
     }
 
     /**
      *  Returns all years for this time series in ascending order.
      */
     public List<Integer> years() {
-        // TODO: Fill in this method.
-        return null;
+        return new ArrayList<>(this.keySet());
     }
 
     /**
@@ -46,8 +50,7 @@ public class TimeSeries extends TreeMap<Integer, Double> {
      *  order of years().
      */
     public List<Double> data() {
-        // TODO: Fill in this method.
-        return null;
+        return new ArrayList<>(this.values());
     }
 
     /**
@@ -60,8 +63,22 @@ public class TimeSeries extends TreeMap<Integer, Double> {
      * should store the value from the TimeSeries that contains that year.
      */
     public TimeSeries plus(TimeSeries ts) {
-        // TODO: Fill in this method.
-        return null;
+        Set<Integer> years = new HashSet<>(this.keySet());
+        years.addAll(ts.keySet());
+        TimeSeries result = new TimeSeries();
+
+        for (Integer year : years) {
+            if (!this.containsKey(year)) {
+                if (ts.containsKey(year)) {
+                    result.put(year, ts.get(year));
+                }
+            } else if (!ts.containsKey(year)) {
+                result.put(year, this.get(year));
+            } else {
+                result.put(year, this.get(year) + ts.get(year));
+            }
+        }
+        return result;
     }
 
     /**
@@ -74,10 +91,17 @@ public class TimeSeries extends TreeMap<Integer, Double> {
      * If TS has a year that is not in this TimeSeries, ignore it.
      */
     public TimeSeries dividedBy(TimeSeries ts) {
-        // TODO: Fill in this method.
-        return null;
-    }
+        TimeSeries result = new TimeSeries();
 
-    // TODO: Add any private helper methods.
-    // TODO: Remove all TODO comments before submitting.
+        for (int year : this.keySet()) {
+            if (!ts.containsKey(year)) {
+                throw new IllegalArgumentException("除数 TimeSeries 缺少了年份: " + year);
+            }
+
+            double quotient = this.get(year) / ts.get(year);
+            result.put(year, quotient);
+        }
+
+        return result;
+    }
 }
